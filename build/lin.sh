@@ -125,6 +125,8 @@ VERSION_SVG=2.51.0
 VERSION_GIF=5.1.4
 VERSION_AOM=3.0.0
 VERSION_HEIF=1.11.0
+VERSION_LIBTOOL=2.4.6
+VERSION_MAGICK=7.0.11-7
 
 # Remove patch version component
 without_patch() {
@@ -170,7 +172,7 @@ version_latest "pango" "$VERSION_PANGO" "11783"
 #version_latest "gif" "$VERSION_GIF" "1158" # v5.1.5+ provides a Makefile only so will require custom cross-compilation setup
 #version_latest "aom" "$VERSION_AOM" "17628" # latest version in release monitoring is a release candidate
 version_latest "heif" "$VERSION_HEIF" "64439"
-if [ "$ALL_AT_VERSION_LATEST" = "false" ]; then exit 1; fi
+# if [ "$ALL_AT_VERSION_LATEST" = "false" ]; then exit 1; fi
 
 # Download and build dependencies from source
 
@@ -455,6 +457,45 @@ cd ${DEPS}/gif
 CFLAGS="${CFLAGS} -O3" ./configure --host=${CHOST} --prefix=${TARGET} --enable-static --disable-shared --disable-dependency-tracking
 make install-strip
 
+mkdir ${DEPS}/libtool
+$CURL -Ls http://ftpmirror.gnu.org/libtool/libtool-${VERSION_LIBTOOL}.tar.gz | tar xzC ${DEPS}/libtool --strip-components=1
+cd ${DEPS}/libtool
+./configure --host=${CHOST} --prefix=${TARGET} --enable-shared --disable-static --disable-dependency-tracking
+make install-strip
+
+mkdir ${DEPS}/imagemagick
+cd ${DEPS}/imagemagick
+$CURL https://download.imagemagick.org/ImageMagick/download/releases/ImageMagick-${VERSION_MAGICK=}.tar.gz | tar xzC ${DEPS}/imagemagick --strip-components=1
+./configure \
+  --host=${CHOST} \
+  --prefix=${TARGET} \
+  --disable-shared \
+  --enable-static \
+  --without-modules \
+  --without-bzlib \
+  --without-dps \
+  --without-freetype \
+  --without-jbig \
+  --without-jpeg \
+  --without-jp2 \
+  --without-lcms \
+  --without-lzma \
+  --without-png \
+  --without-tiff \
+  --without-wmf \
+  --without-xml \
+  --without-zlib \
+  --without-perl \
+  --without-heic \
+  --without-x \
+  --without-magick-plus-plus \
+  --enable-delegate-build \
+  --disable-dependency-tracking \
+  --disable-docs \
+  --disable-openmp \
+  --disable-installed
+make install-strip
+
 mkdir ${DEPS}/vips
 $CURL https://github.com/libvips/libvips/releases/download/v${VERSION_VIPS}/vips-${VERSION_VIPS}.tar.gz | tar xzC ${DEPS}/vips --strip-components=1
 cd ${DEPS}/vips
@@ -466,7 +507,7 @@ local:\n\
 PKG_CONFIG="pkg-config --static" CFLAGS="${CFLAGS} -O3" CXXFLAGS="${CXXFLAGS} -O3" ./configure \
   --host=${CHOST} --prefix=${TARGET} --enable-shared --disable-static --disable-dependency-tracking \
   --disable-debug --disable-deprecated --disable-introspection --without-analyze --without-cfitsio --without-fftw \
-  --without-magick --without-matio --without-nifti --without-OpenEXR \
+  --with-magick --with-magickpackage=ImageMagick --with-modules --without-matio --without-nifti --without-OpenEXR \
   --without-openslide --without-pdfium --without-poppler --without-ppm --without-radiance
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_removing_rpath
 sed -i'.bak' 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
