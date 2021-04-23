@@ -172,7 +172,7 @@ version_latest "pango" "$VERSION_PANGO" "11783"
 #version_latest "gif" "$VERSION_GIF" "1158" # v5.1.5+ provides a Makefile only so will require custom cross-compilation setup
 #version_latest "aom" "$VERSION_AOM" "17628" # latest version in release monitoring is a release candidate
 version_latest "heif" "$VERSION_HEIF" "64439"
-# if [ "$ALL_AT_VERSION_LATEST" = "false" ]; then exit 1; fi
+if [ "$ALL_AT_VERSION_LATEST" = "false" ]; then exit 1; fi
 
 # Download and build dependencies from source
 
